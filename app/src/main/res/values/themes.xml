@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <style name="Theme.DocMax" parent="Theme.AppCompat.Light.NoActionBar">
+        <!-- You can add your own color overrides here -->
+    </style>
+</resources>
