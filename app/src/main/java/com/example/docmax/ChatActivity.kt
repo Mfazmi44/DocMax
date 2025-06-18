@@ -5,17 +5,24 @@ import android.widget.*
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
+import org.tensorflow.lite.Interpreter
+import java.io.FileInputStream
+import java.nio.MappedByteBuffer
+import java.nio.channels.FileChannel
 
 class ChatActivity : AppCompatActivity() {
     private lateinit var chatContainer: LinearLayout
     private lateinit var userInput: EditText
     private lateinit var sendButton: Button
+    private lateinit var emotionAnalyzer: EmotionAnalyzer
     private var userName: String = "User"
     private var lastSentiment: String = "Belum terdeteksi"
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_chat)
+
+        emotionAnalyzer = EmotionAnalyzer(this)
 
         userName = intent.getStringExtra("USERNAME") ?: "User"
         findViewById<TextView>(R.id.userNameTitle).text = userName
@@ -95,6 +102,10 @@ class ChatActivity : AppCompatActivity() {
             else -> "Ceritakan lebih lanjut yuk."
         }
 
+        val detectedEmotion = emotionAnalyzer.analyze(message)
+        Toast.makeText(this, "Detected emotion: $detectedEmotion", Toast.LENGTH_SHORT).show()
+// You can map this to mood or use it directly in UI
+
         appendChat("DocMax", response)
     }
 
@@ -111,5 +122,19 @@ class ChatActivity : AppCompatActivity() {
             .setMessage("Berdasarkan pesan terakhir:\n\nSentimen: $lastSentiment\nMood: $mood")
             .setPositiveButton("Tutup", null)
             .show()
+    }
+
+    private fun loadModelFile(): MappedByteBuffer {
+        val fileDescriptor = assets.openFd("model.tflite")
+        val inputStream = FileInputStream(fileDescriptor.fileDescriptor)
+        val fileChannel = inputStream.channel
+        val startOffset = fileDescriptor.startOffset
+        val declaredLength = fileDescriptor.declaredLength
+        return fileChannel.map(FileChannel.MapMode.READ_ONLY, startOffset, declaredLength)
+    }
+
+    private fun testModelLoad() {
+        val model = Interpreter(loadModelFile())
+        Toast.makeText(this, "Model Loaded Successfully!", Toast.LENGTH_SHORT).show()
     }
 }

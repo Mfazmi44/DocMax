@@ -41,10 +41,9 @@ dependencies {
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)
     implementation(libs.androidx.appcompat)
+    implementation(libs.litert)
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
-    implementation("org.tensorflow:tensorflow-lite:2.12.0")
-    implementation("org.tensorflow:tensorflow-lite-support:0.4.2")
-    implementation("org.tensorflow:tensorflow-lite-task-text:0.4.2")
+    implementation("org.tensorflow:tensorflow-lite-select-tf-ops:2.14.0")
 }
