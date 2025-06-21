@@ -89,6 +89,19 @@ class ChatActivity : AppCompatActivity() {
             else -> "Netral"
         }
 
+        try {
+            val emotion = emotionAnalyzer.analyze(message)
+            Toast.makeText(this, "Detected: $emotion", Toast.LENGTH_SHORT).show()
+
+            val response = getResponseForEmotion(emotion, message)
+            appendChat("DocMax", response)
+
+            // ⏭ Next: here we’ll later call Google Search based on emotion/message
+        } catch (e: Exception) {
+            appendChat("DocMax", "Maaf, aku kesulitan memahami perasaanmu barusan 😞")
+            e.printStackTrace()
+        }
+
         val mood = when (lastSentiment) {
             "Positif" -> "Senang / Bahagia"
             "Negatif" -> "Sedih / Stres / Depresi"
@@ -131,6 +144,23 @@ class ChatActivity : AppCompatActivity() {
         val startOffset = fileDescriptor.startOffset
         val declaredLength = fileDescriptor.declaredLength
         return fileChannel.map(FileChannel.MapMode.READ_ONLY, startOffset, declaredLength)
+    }
+
+    private fun getResponseForEmotion(emotion: String, message: String): String {
+        return when (emotion) {
+            "joy" -> "Senang sekali mendengarnya! Apa yang membuatmu bahagia hari ini?"
+            "sadness" -> "Aku ikut sedih mendengarnya. Ingin bercerita lebih lanjut?"
+            "anger" -> "Sepertinya kamu sedang kesal. Mau aku bantu cari solusi atau hanya ingin didengarkan?"
+            "fear" -> "Kamu tidak sendiri. Ada hal yang membuatmu takut atau khawatir?"
+            "neutral" -> {
+                when {
+                    message.contains("malas", ignoreCase = true) -> "Nggak apa-apa kok kalau lagi merasa malas. Mau coba aktivitas ringan?"
+                    message.contains("capek", ignoreCase = true) -> "Kalau capek, istirahat sebentar juga penting lho. Mau aku carikan cara relaksasi?"
+                    else -> "Terima kasih sudah berbagi. Ceritakan apa yang kamu rasakan saat ini."
+                }
+            }
+            else -> "Aku di sini untuk mendengarkan, silakan ceritakan apa pun yang kamu rasakan."
+        }
     }
 
     private fun testModelLoad() {
