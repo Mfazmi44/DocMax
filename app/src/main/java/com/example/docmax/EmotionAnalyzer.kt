@@ -30,7 +30,28 @@ class EmotionAnalyzer(context: Context) {
         )
     }
 
+    private val emotionKeywords = mapOf(
+        "senang" to "joy",
+        "bahagia" to "joy",
+        "gembira" to "joy",
+        "sedih" to "sadness",
+        "capek" to "sadness",
+        "lelah" to "sadness",
+        "marah" to "anger",
+        "kesal" to "anger",
+        "takut" to "fear",
+        "cemas" to "fear"
+    )
+
     fun analyze(text: String): String {
+        val lowered = text.lowercase()
+
+        // Prioritaskan deteksi keyword dulu
+        for ((keyword, emotion) in emotionKeywords) {
+            if (lowered.contains(keyword)) return emotion
+        }
+
+        // Jika tidak ada keyword cocok, pakai model MobileBERT
         val (inputIds, attentionMask) = tokenizer.tokenize(text)
 
         val inputs = arrayOf(
@@ -44,9 +65,10 @@ class EmotionAnalyzer(context: Context) {
 
         interpreter.runForMultipleInputsOutputs(inputs, output)
 
-        val emotions = listOf("joy", "sadness", "anger", "fear")// ✅ must match the model's order
+        val emotions = listOf("joy", "sadness", "anger", "fear")
         val predictedIndex = result[0].indices.maxByOrNull { result[0][it] } ?: -1
 
         return if (predictedIndex in emotions.indices) emotions[predictedIndex] else "unknown"
     }
+
 }

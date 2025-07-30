@@ -83,44 +83,36 @@ class ChatActivity : AppCompatActivity() {
     }
 
     private fun respondToUser(message: String) {
-        lastSentiment = when {
-            message.contains("tidak", ignoreCase = true) -> "Negatif"
-            message.contains("baik", ignoreCase = true) -> "Positif"
-            else -> "Netral"
-        }
-
         try {
-            val emotion = emotionAnalyzer.analyze(message)
-            Toast.makeText(this, "Detected: $emotion", Toast.LENGTH_SHORT).show()
+            val detectedEmotion = emotionAnalyzer.analyze(message)
+            Toast.makeText(this, "Detected: $detectedEmotion", Toast.LENGTH_SHORT).show()
 
-            val response = getResponseForEmotion(emotion, message)
+            // Tentukan sentimen berdasarkan kata kunci (fallback jika perlu)
+            lastSentiment = when {
+                message.contains("tidak", ignoreCase = true) -> "Negatif"
+                message.contains("baik", ignoreCase = true) -> "Positif"
+                message.contains("senang", ignoreCase = true) -> "Positif"
+                message.contains("sedih", ignoreCase = true) -> "Negatif"
+                message.contains("marah", ignoreCase = true) -> "Negatif"
+                else -> "Netral"
+            }
+
+            // Sesuaikan sentimen jika hasil emotion lebih kuat
+            lastSentiment = when (detectedEmotion) {
+                "joy" -> "Positif"
+                "sadness", "anger", "fear" -> "Negatif"
+                else -> lastSentiment
+            }
+
+            val response = getResponseForEmotion(detectedEmotion, message)
             appendChat("DocMax", response)
 
-            // ⏭ Next: here we’ll later call Google Search based on emotion/message
         } catch (e: Exception) {
             appendChat("DocMax", "Maaf, aku kesulitan memahami perasaanmu barusan 😞")
             e.printStackTrace()
         }
-
-        val mood = when (lastSentiment) {
-            "Positif" -> "Senang / Bahagia"
-            "Negatif" -> "Sedih / Stres / Depresi"
-            "Netral" -> "Biasa Saja"
-            else -> "Belum diketahui"
-        }
-
-        val response = when (lastSentiment) {
-            "Negatif" -> "Maaf kau merasa seperti itu. Mau bicara lebih lanjut?"
-            "Positif" -> "Senang mendengarnya!"
-            else -> "Ceritakan lebih lanjut yuk."
-        }
-
-        val detectedEmotion = emotionAnalyzer.analyze(message)
-        Toast.makeText(this, "Detected emotion: $detectedEmotion", Toast.LENGTH_SHORT).show()
-// You can map this to mood or use it directly in UI
-
-        appendChat("DocMax", response)
     }
+
 
     private fun showMoodDialog() {
         val mood = when (lastSentiment) {
